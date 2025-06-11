@@ -208,35 +208,36 @@
       }
 
       async function sendMessage() {
-        const userInput = chatInput.value.trim();
-        if (!userInput) return;
+  const userInput = document.getElementById('user-input').value;
+  if (!userInput.trim()) return;
 
-         // Display user message
-         const chatMessages = document.getElementById('chat-messages');
-         chatMessages.innerHTML += `<div style="text-align: right; margin: 5px; color: blue;">You: ${userInput}</div>`;
-         document.getElementById('user-input').value = '';
+  // Display user message
+  const chatMessages = document.getElementById('chat-messages');
+  chatMessages.innerHTML += `<div class="user-message">${userInput}</div>`;
+  
+  document.getElementById('user-input').value = '';
 
-
-        try {
-          // Encode user input for URL safety
-          const encodedInput = encodeURIComponent(userInput);
-          const response = await fetch('https://n8n.haasch.com/webhook-test/samplechatbot?message=${encodedInput}', {
-            method: 'GET',
-             headers: {
-               'Accept': 'application/json'
-              }
-          });
-
-          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-          
-          const data = await response.json();
-           // Display AI response (handle different response structures)
-    const aiResponse = data.response || data.message || data.choices?.[0]?.message?.content || "No response text found";
-    chatMessages.innerHTML += `<div style="text-align: left; margin: 5px; color: green;">Assistant: ${aiResponse}</div>`;
+  try {
+    const response = await fetch('https://n8n.haasch.com/webhook-test/samplechatbot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userInput })
+    });
+    
+    if (!response.ok) throw new Error('API error');
+    
+    const data = await response.json();
+    
+    // Display AI response (check both possible response structures)
+    const aiResponse = data.response || 
+                      data.choices?.[0]?.message?.content || 
+                      "I didn't understand that response";
+    
+    chatMessages.innerHTML += `<div class="bot-message">${aiResponse}</div>`;
     
   } catch (error) {
     console.error('Error:', error);
-    chatMessages.innerHTML += `<div style="color: red;">Error: ${error.message}</div>`;
+    chatMessages.innerHTML += `<div class="error-message">Assistant is unavailable</div>`;
   }
 }
 
